@@ -23,7 +23,6 @@
 #endif
 
 #include "php.h"
-#include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_cg_bcode.h"
 
@@ -33,16 +32,6 @@ ZEND_DECLARE_MODULE_GLOBALS(cg_bcode)
 
 /* True global resources - no need for thread safety here */
 static int le_cg_bcode;
-
-/* {{{ PHP_INI
- */
-/* Remove comments and fill if you need to have entries in php.ini
-PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("cg_bcode.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_cg_bcode_globals, cg_bcode_globals)
-    STD_PHP_INI_ENTRY("cg_bcode.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_cg_bcode_globals, cg_bcode_globals)
-PHP_INI_END()
-*/
-/* }}} */
 
 /* Remove the following function when you have successfully modified config.m4
    so that your module can be compiled into PHP, it exists only for testing
@@ -101,18 +90,6 @@ PHP_FUNCTION(bdecode)
 }
 /* }}} */
 
-
-/* {{{ php_cg_bcode_init_globals
- */
-/* Uncomment this function if you have INI entries
-static void php_cg_bcode_init_globals(zend_cg_bcode_globals *cg_bcode_globals)
-{
-	cg_bcode_globals->global_value = 0;
-	cg_bcode_globals->global_string = NULL;
-}
-*/
-/* }}} */
-
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(cg_bcode)
@@ -131,27 +108,6 @@ PHP_MSHUTDOWN_FUNCTION(cg_bcode)
 	/* uncomment this line if you have INI entries
 	UNREGISTER_INI_ENTRIES();
 	*/
-	return SUCCESS;
-}
-/* }}} */
-
-/* Remove if there's nothing to do at request start */
-/* {{{ PHP_RINIT_FUNCTION
- */
-PHP_RINIT_FUNCTION(cg_bcode)
-{
-#if defined(COMPILE_DL_CG_BCODE) && defined(ZTS)
-	ZEND_TSRMLS_CACHE_UPDATE();
-#endif
-	return SUCCESS;
-}
-/* }}} */
-
-/* Remove if there's nothing to do at request end */
-/* {{{ PHP_RSHUTDOWN_FUNCTION
- */
-PHP_RSHUTDOWN_FUNCTION(cg_bcode)
-{
 	return SUCCESS;
 }
 /* }}} */
@@ -190,8 +146,8 @@ zend_module_entry cg_bcode_module_entry = {
 	cg_bcode_functions,
 	PHP_MINIT(cg_bcode),
 	PHP_MSHUTDOWN(cg_bcode),
-	PHP_RINIT(cg_bcode),		/* Replace with NULL if there's nothing to do at request start */
-	PHP_RSHUTDOWN(cg_bcode),	/* Replace with NULL if there's nothing to do at request end */
+	NULL,		/* Replace with NULL if there's nothing to do at request start */
+	NULL,	/* Replace with NULL if there's nothing to do at request end */
 	PHP_MINFO(cg_bcode),
 	PHP_CG_BCODE_VERSION,
 	STANDARD_MODULE_PROPERTIES
