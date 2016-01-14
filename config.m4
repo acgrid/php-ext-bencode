@@ -13,9 +13,9 @@ dnl [  --with-cg_bcode             Include cg_bcode support])
 
 dnl Otherwise use enable:
 
-dnl PHP_ARG_ENABLE(cg_bcode, whether to enable cg_bcode support,
+PHP_ARG_ENABLE(cg_bcode, whether to enable cg_bcode support,
 dnl Make sure that the comment is aligned:
-dnl [  --enable-cg_bcode           Enable cg_bcode support])
+[  --enable-cg_bcode           Enable cg_bcode support])
 
 if test "$PHP_CG_BCODE" != "no"; then
   dnl Write more examples of tests here...
