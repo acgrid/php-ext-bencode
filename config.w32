@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("cg_bcode", "for cg_bcode support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("cg_bcode", "enable cg_bcode support", "no");
+
+if (PHP_CG_BCODE != "no") {
+	EXTENSION("cg_bcode", "cg_bcode.c", PHP_EXTNAME_SHARED, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
+}
+
