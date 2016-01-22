@@ -26,6 +26,8 @@ extern zend_module_entry cg_bcode_module_entry;
 
 #define PHP_CG_BCODE_VERSION "0.1.0" /* Replace with version number for your extension */
 
+#include "zend_smart_str_public.h"
+
 #ifdef PHP_WIN32
 #	define PHP_CG_BCODE_API __declspec(dllexport)
 #elif defined(__GNUC__) && __GNUC__ >= 4
@@ -58,6 +60,7 @@ ZEND_END_MODULE_GLOBALS(cg_bcode)
 ZEND_TSRMLS_CACHE_EXTERN();
 #endif
 
+PHP_CG_BCODE_API void php_bencode_encode(smart_str *buf, zval *val);
 #endif	/* PHP_CG_BCODE_H */
 
 

@@ -24,6 +24,7 @@
 
 #include "php.h"
 #include "ext/standard/info.h"
+#include "zend_smart_str.h"
 #include "php_cg_bcode.h"
 
 /* If you declare any globals in php_cg_bcode.h uncomment this:
@@ -67,11 +68,18 @@ PHP_FUNCTION(bencode)
 {
 	int argc = ZEND_NUM_ARGS();
 	zval *php_variable = NULL;
+	smart_str buf = {0};
 
 	if (zend_parse_parameters(argc TSRMLS_CC, "z", &php_variable) == FAILURE) 
 		return;
 
-	php_error(E_WARNING, "bencode: not yet implemented");
+	php_bencode_encode(&buf, php_variable);
+	smart_str_0(&buf);
+	if (buf.s) {
+		RETURN_STR(buf.s);
+	} else {
+		RETURN_EMPTY_STRING();
+	}
 }
 /* }}} */
 
@@ -89,6 +97,56 @@ PHP_FUNCTION(bdecode)
 	php_error(E_WARNING, "bdecode: not yet implemented");
 }
 /* }}} */
+
+static inline int php_bencode_is_valid_double(double d) /* {{{ */
+{
+	return !zend_isinf(d) && !zend_isnan(d);
+}
+/* }}} */
+
+PHP_CG_BCODE_API void php_bencode_encode(smart_str *buf, zval *val)
+{
+again:
+	switch (Z_TYPE_P(val))
+	{
+		case IS_NULL:
+			break;
+		case IS_TRUE:
+			smart_str_appendl(buf, "i1e", 3);
+			break;
+		case IS_FALSE:
+			smart_str_appendl(buf, "i0e", 3);
+			break;
+		case IS_LONG:
+			smart_str_appendc(buf, 'i');
+			smart_str_append_long(buf, Z_LVAL_P(val));
+			smart_str_appendc(buf, 'e');
+			break;
+		case IS_DOUBLE:
+			smart_str_appendc(buf, 'i');
+			if(php_bencode_is_valid_double(Z_DVAL_P(val))){
+				smart_str_append_long(buf, zval_get_long(val));
+			}else{
+				zend_error(E_WARNING, "cg_bcode: Cannot convert infinite or NaN to bencode, encoded as 0");
+				smart_str_appendc(buf, '0');
+			}
+			smart_str_appendc(buf, 'e');
+			break;
+		case IS_STRING:
+			smart_str_append_long(buf, Z_STRLEN_P(val));
+            smart_str_appendc(buf, ':');
+            smart_str_appendl(buf, Z_STRVAL_P(val), Z_STRLEN_P(val));
+			break;
+		case IS_ARRAY:
+			break;
+		case IS_REFERENCE:
+			val = Z_REFVAL_P(val);
+			goto again;
+		default:
+			zend_error(E_WARNING, "cg_bcode: Unsuppported variable type.");
+			break;
+	}
+}
 
 /* {{{ PHP_MINIT_FUNCTION
  */
