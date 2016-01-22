@@ -44,7 +44,7 @@ static int le_cg_bcode;
 PHP_FUNCTION(confirm_cg_bcode_compiled)
 {
 	char *arg = NULL;
-	size_t arg_len, len;
+	size_t arg_len;
 	zend_string *strg;
 
 	if (zend_parse_parameters(ZEND_NUM_ARGS(), "s", &arg, &arg_len) == FAILURE) {
