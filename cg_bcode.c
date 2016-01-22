@@ -94,8 +94,8 @@ static void php_bencode_decode_str(zval *return_value, char *str, size_t *pos, s
 	}
 	
 	if (str[*pos] != ':') {
-		zend_error(E_WARNING, "Invaild bencoded-string, expected semicolon.");
-		RETURN_EMPTY_STRING();
+		zend_error(E_WARNING, "Invaild bencoded-string, expected semicolon, stop at position %u.", *pos);
+		RETURN_NULL();
 	}
 	
 	(*pos)++;
@@ -169,7 +169,8 @@ static void php_bencode_decode_dict(zval *return_value, char *str, size_t *pos, 
 		zval dict_key, dict_value;
 		php_bencode_decode_str(&dict_key, str, pos, str_len);
 		php_bencode_decode(&dict_value, str, pos, str_len);
-		if (Z_STRLEN(dict_key) > 0 && Z_TYPE(dict_value) != IS_NULL) {
+		if (Z_TYPE(dict_key) == IS_NULL) break;
+		if (Z_TYPE(dict_value) != IS_NULL) {
 			add_assoc_zval(return_value, Z_STRVAL(dict_key), &dict_value);
 		}
 	}
