@@ -104,6 +104,34 @@ static inline int php_bencode_is_valid_double(double d) /* {{{ */
 }
 /* }}} */
 
+// Copied from ext/standard/array.c
+static int php_bencode_key_compare_string(const void *a, const void *b) /* {{{ */
+{
+	Bucket *f = (Bucket *) a;
+	Bucket *s = (Bucket *) b;
+	char *s1, *s2;
+	size_t l1, l2;
+	char buf1[MAX_LENGTH_OF_LONG + 1];
+	char buf2[MAX_LENGTH_OF_LONG + 1];
+
+	if (f->key) {
+		s1 = f->key->val;
+		l1 = f->key->len;
+	} else {
+		s1 = zend_print_long_to_buf(buf1 + sizeof(buf1) - 1, f->h);
+		l1 = buf1 + sizeof(buf1) - 1 - s1;
+	}
+	if (s->key) {
+		s2 = s->key->val;
+		l2 = s->key->len;
+	} else {
+		s2 = zend_print_long_to_buf(buf2 + sizeof(buf2) - 1, s->h);
+		l2 = buf2 + sizeof(buf2) - 1 - s1;
+	}
+	return zend_binary_strcmp(s1, l1, s2, l2);
+}
+/* }}} */
+
 static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
 {
 	int num_elements = 0;
@@ -150,6 +178,14 @@ static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
 		zval *data;
 		zend_ulong index;
 		HashTable *tmp_ht;
+		HashTable sorted_ht;
+		
+		if (mode == PHP_BENCODE_TYPE_DICTIONARY) {
+			zend_hash_init(&sorted_ht, num_elements, NULL, NULL, 1);
+			zend_hash_copy(&sorted_ht, ht, NULL);
+			zend_hash_sort(&sorted_ht, php_bencode_key_compare_string, 0);
+			ht = &sorted_ht;
+		}
 		
 		ZEND_HASH_FOREACH_KEY_VAL_IND(ht, index, key, data) {
 			ZVAL_DEREF(data);
@@ -183,6 +219,10 @@ static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
 				ZEND_HASH_DEC_APPLY_COUNT(tmp_ht);
 			}
 		} ZEND_HASH_FOREACH_END();
+		
+		if (mode == PHP_BENCODE_TYPE_DICTIONARY) {
+			zend_hash_destroy(&sorted_ht);
+		}
 	}
 	smart_str_appendc(buf, PHP_BENCODE_END_STRUCTURE);
 }
