@@ -117,7 +117,8 @@ PHP_MSHUTDOWN_FUNCTION(cg_bcode)
 PHP_MINFO_FUNCTION(cg_bcode)
 {
 	php_info_print_table_start();
-	php_info_print_table_header(2, "cg_bcode support", "enabled");
+	php_info_print_table_row(2, "cg_bcode support", "enabled");
+	php_info_print_table_row(2, "bencode version", PHP_CG_BCODE_VERSION);
 	php_info_print_table_end();
 
 	/* Remove comments if you have entries in php.ini
