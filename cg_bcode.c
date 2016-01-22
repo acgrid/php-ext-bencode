@@ -104,7 +104,91 @@ static inline int php_bencode_is_valid_double(double d) /* {{{ */
 }
 /* }}} */
 
-PHP_CG_BCODE_API void php_bencode_encode(smart_str *buf, zval *val)
+static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
+{
+	int num_elements = 0;
+	char mode;
+	HashTable *ht;
+	
+	if (Z_TYPE_P(val) == IS_ARRAY) {
+		ht = Z_ARRVAL_P(val);
+	} else {
+		ht = Z_OBJPROP_P(val);
+		mode = PHP_BENCODE_TYPE_DICTIONARY;
+	}
+	if (ht && ZEND_HASH_GET_APPLY_COUNT(ht) > 1) {
+		zend_error(E_WARNING, "recursion detected");
+		return;
+	}
+	num_elements = ht ? zend_hash_num_elements(ht) : 0;
+	if (Z_TYPE_P(val) == IS_ARRAY) {
+		if (num_elements > 0) {
+			zend_string *key;
+			zend_ulong index, idx;
+
+			idx = 0;
+			mode = PHP_BENCODE_TYPE_LIST;
+			ZEND_HASH_FOREACH_KEY(ht, index, key) {
+				if (key) {
+					mode = PHP_BENCODE_TYPE_DICTIONARY;
+					break;
+				} else {
+					if (index != idx) {
+						mode = PHP_BENCODE_TYPE_DICTIONARY;
+						break;
+					}
+				}
+				idx++;
+			} ZEND_HASH_FOREACH_END();
+		}else{
+			mode = PHP_BENCODE_TYPE_LIST;
+		}
+	}
+	smart_str_appendc(buf, mode);
+	if (num_elements > 0) {
+		zend_string *key;
+		zval *data;
+		zend_ulong index;
+		HashTable *tmp_ht;
+		
+		ZEND_HASH_FOREACH_KEY_VAL_IND(ht, index, key, data) {
+			ZVAL_DEREF(data);
+			tmp_ht = HASH_OF(data);
+			if (tmp_ht && ZEND_HASH_APPLY_PROTECTION(tmp_ht)) {
+				ZEND_HASH_INC_APPLY_COUNT(tmp_ht);
+			}
+			
+			if (mode == PHP_BENCODE_TYPE_DICTIONARY) {
+				if (key) {
+					if (ZSTR_VAL(key)[0] == '\0' && Z_TYPE_P(val) == IS_OBJECT) {
+						if (tmp_ht && ZEND_HASH_APPLY_PROTECTION(tmp_ht)) {
+							ZEND_HASH_DEC_APPLY_COUNT(tmp_ht);
+						}
+						continue;
+					}
+					smart_str_append_long(buf, ZSTR_LEN(key));
+					smart_str_appendc(buf, ':');
+					smart_str_appendl(buf, ZSTR_VAL(key), ZSTR_LEN(key));
+				} else {
+					char key_buf[MAX_LENGTH_OF_LONG + 1];
+					char *res = zend_print_long_to_buf(key_buf + sizeof(key_buf) - 1, index);
+					smart_str_append_long(buf, key_buf + sizeof(key_buf) - 1 - res);
+					smart_str_appendc(buf, ':');
+					smart_str_appendl(buf, res, key_buf + sizeof(key_buf) - 1 - res);
+				}
+			}
+			php_bencode_encode(buf, data);
+			
+			if (tmp_ht && ZEND_HASH_APPLY_PROTECTION(tmp_ht)) {
+				ZEND_HASH_DEC_APPLY_COUNT(tmp_ht);
+			}
+		} ZEND_HASH_FOREACH_END();
+	}
+	smart_str_appendc(buf, PHP_BENCODE_END_STRUCTURE);
+}
+/* }}} */
+
+PHP_CG_BCODE_API void php_bencode_encode(smart_str *buf, zval *val) /* {{{ */
 {
 again:
 	switch (Z_TYPE_P(val))
@@ -118,26 +202,28 @@ again:
 			smart_str_appendl(buf, "i0e", 3);
 			break;
 		case IS_LONG:
-			smart_str_appendc(buf, 'i');
+			smart_str_appendc(buf, PHP_BENCODE_TYPE_INTEGER);
 			smart_str_append_long(buf, Z_LVAL_P(val));
-			smart_str_appendc(buf, 'e');
+			smart_str_appendc(buf, PHP_BENCODE_END_STRUCTURE);
 			break;
 		case IS_DOUBLE:
-			smart_str_appendc(buf, 'i');
+			smart_str_appendc(buf, PHP_BENCODE_TYPE_INTEGER);
 			if(php_bencode_is_valid_double(Z_DVAL_P(val))){
 				smart_str_append_long(buf, zval_get_long(val));
 			}else{
 				zend_error(E_WARNING, "cg_bcode: Cannot convert infinite or NaN to bencode, encoded as 0");
 				smart_str_appendc(buf, '0');
 			}
-			smart_str_appendc(buf, 'e');
+			smart_str_appendc(buf, PHP_BENCODE_END_STRUCTURE);
 			break;
 		case IS_STRING:
 			smart_str_append_long(buf, Z_STRLEN_P(val));
             smart_str_appendc(buf, ':');
             smart_str_appendl(buf, Z_STRVAL_P(val), Z_STRLEN_P(val));
 			break;
+		case IS_OBJECT:
 		case IS_ARRAY:
+			php_bencode_encode_array(buf, val);
 			break;
 		case IS_REFERENCE:
 			val = Z_REFVAL_P(val);
@@ -147,6 +233,8 @@ again:
 			break;
 	}
 }
+/* }}} */
+
 
 /* {{{ PHP_MINIT_FUNCTION
  */

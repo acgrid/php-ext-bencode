@@ -24,7 +24,7 @@
 extern zend_module_entry cg_bcode_module_entry;
 #define phpext_cg_bcode_ptr &cg_bcode_module_entry
 
-#define PHP_CG_BCODE_VERSION "0.1.0" /* Replace with version number for your extension */
+#define PHP_CG_BCODE_VERSION "0.1.1" /* Replace with version number for your extension */
 
 #include "zend_smart_str_public.h"
 
@@ -59,6 +59,11 @@ ZEND_END_MODULE_GLOBALS(cg_bcode)
 #if defined(ZTS) && defined(COMPILE_DL_CG_BCODE)
 ZEND_TSRMLS_CACHE_EXTERN();
 #endif
+
+#define PHP_BENCODE_TYPE_INTEGER	'i'
+#define PHP_BENCODE_TYPE_LIST		'l'
+#define PHP_BENCODE_TYPE_DICTIONARY	'd'
+#define PHP_BENCODE_END_STRUCTURE	'e'
 
 PHP_CG_BCODE_API void php_bencode_encode(smart_str *buf, zval *val);
 #endif	/* PHP_CG_BCODE_H */
