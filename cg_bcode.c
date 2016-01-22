@@ -150,13 +150,30 @@ static void php_bencode_decode_int(zval *return_value, char *str, size_t *pos, s
 
 static void php_bencode_decode_list(zval *return_value, char *str, size_t *pos, size_t *str_len) /* {{{ */
 {
-	
+	array_init(return_value);
+	(*pos)++;
+	while (*pos < *str_len && str[*pos] != PHP_BENCODE_END_STRUCTURE) {
+		zval list_value;
+		php_bencode_decode(&list_value, str, pos, str_len);
+		zend_hash_next_index_insert(Z_ARRVAL_P(return_value), &list_value);
+	}
+	(*pos)++;
 }
 /* }}} */
 
 static void php_bencode_decode_dict(zval *return_value, char *str, size_t *pos, size_t *str_len) /* {{{ */
 {
-	
+	array_init(return_value);
+	(*pos)++;
+	while (*pos < *str_len && str[*pos] != PHP_BENCODE_END_STRUCTURE) {
+		zval dict_key, dict_value;
+		php_bencode_decode_str(&dict_key, str, pos, str_len);
+		php_bencode_decode(&dict_value, str, pos, str_len);
+		if (Z_STRLEN(dict_key) > 0 && Z_TYPE(dict_value) != IS_NULL) {
+			add_assoc_zval(return_value, Z_STRVAL(dict_key), &dict_value);
+		}
+	}
+	(*pos)++;
 }
 /* }}} */
 
@@ -165,10 +182,10 @@ PHP_CG_BCODE_API void php_bencode_decode(zval *return_value, char *str, size_t *
 	if (*str_len > 0 && *pos < *str_len) {
 		switch (str[*pos]) {
 			case 'l':
-				php_bencode_decode_dict(return_value, str, pos, str_len);
+				php_bencode_decode_list(return_value, str, pos, str_len);
 				break;
 			case 'd':
-				php_bencode_decode_list(return_value, str, pos, str_len);
+				php_bencode_decode_dict(return_value, str, pos, str_len);
 				break;
 			case 'i':
 				php_bencode_decode_int(return_value, str, pos, str_len);
