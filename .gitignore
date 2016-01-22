@@ -33,3 +33,7 @@ tests/*/*.php
 tests/*/*.exp
 tests/*/*.log
 tests/*/*.sh
+Debug/
+Release/
+x64/
+x86/
