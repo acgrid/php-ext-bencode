@@ -83,6 +83,103 @@ PHP_FUNCTION(bencode)
 }
 /* }}} */
 
+static void php_bencode_decode_str(zval *return_value, char *str, size_t *pos, size_t *str_len) /* {{{ */
+{
+	size_t len = 0;
+	smart_str buf = {0};
+	
+	while (*pos < *str_len && str[*pos] != ':') {
+		smart_str_appendc(&buf, str[*pos]);
+		(*pos)++;
+	}
+	
+	if (str[*pos] != ':') {
+		zend_error(E_WARNING, "Invaild bencoded-string, expected semicolon.");
+		RETURN_EMPTY_STRING();
+	}
+	
+	(*pos)++;
+	
+	smart_str_0(&buf);
+	len = atoi(ZSTR_VAL(buf.s));
+	smart_str_free(&buf);
+	
+	if (len > 0 && *pos + len - 1 < *str_len) {
+		for (size_t i = 0; i < len; i++, (*pos)++) {
+			smart_str_appendc(&buf, str[*pos]);
+		}
+		smart_str_0(&buf);
+		RETVAL_STR(buf.s);
+	} else {
+		RETVAL_EMPTY_STRING();
+	}
+	
+}
+/* }}} */
+
+static void php_bencode_decode_int(zval *return_value, char *str, size_t *pos, size_t *str_len) /* {{{ */
+{
+	int len = 0;
+	double d;
+	smart_str buf = {0};
+	(*pos)++;
+	while (*pos < *str_len && str[*pos] != PHP_BENCODE_END_STRUCTURE) {
+		smart_str_appendc(&buf, str[*pos]);
+		(*pos)++;
+		len++;
+	}
+	smart_str_0(&buf);
+	
+	if (str[*pos] != PHP_BENCODE_END_STRUCTURE) {
+		smart_str_free(&buf);
+		zend_error(E_WARNING, "Invaild bencoded-integer, expected 'e'.");
+		RETURN_NULL();
+	}
+	
+	(*pos)++;
+	
+	ZVAL_STRINGL(return_value, ZSTR_VAL(buf.s), len);
+	d = zend_strtod(ZSTR_VAL(buf.s), NULL);
+	if (d <= ZEND_LONG_MAX && d >= ZEND_LONG_MIN) {
+		convert_to_long(return_value);
+	}
+	smart_str_free(&buf);
+	
+}
+/* }}} */
+
+static void php_bencode_decode_list(zval *return_value, char *str, size_t *pos, size_t *str_len) /* {{{ */
+{
+	
+}
+/* }}} */
+
+static void php_bencode_decode_dict(zval *return_value, char *str, size_t *pos, size_t *str_len) /* {{{ */
+{
+	
+}
+/* }}} */
+
+PHP_CG_BCODE_API void php_bencode_decode(zval *return_value, char *str, size_t *pos, size_t *str_len) /* {{{ */
+{
+	if (*str_len > 0 && *pos < *str_len) {
+		switch (str[*pos]) {
+			case 'l':
+				php_bencode_decode_dict(return_value, str, pos, str_len);
+				break;
+			case 'd':
+				php_bencode_decode_list(return_value, str, pos, str_len);
+				break;
+			case 'i':
+				php_bencode_decode_int(return_value, str, pos, str_len);
+				break;
+			default:
+				php_bencode_decode_str(return_value, str, pos, str_len);
+		}
+	}
+}
+/* }}} */
+
 /* {{{ proto mixed bdecode(string bencoded_str)
     */
 PHP_FUNCTION(bdecode)
@@ -90,11 +187,16 @@ PHP_FUNCTION(bdecode)
 	char *bencoded_str = NULL;
 	int argc = ZEND_NUM_ARGS();
 	size_t bencoded_str_len;
+	size_t pos = 0;
 
 	if (zend_parse_parameters(argc TSRMLS_CC, "s", &bencoded_str, &bencoded_str_len) == FAILURE) 
 		return;
-
-	php_error(E_WARNING, "bdecode: not yet implemented");
+	
+	if (bencoded_str_len > 0) {
+		php_bencode_decode(return_value, bencoded_str, &pos, &bencoded_str_len);
+	} else {
+		RETVAL_NULL();
+	}
 }
 /* }}} */
 

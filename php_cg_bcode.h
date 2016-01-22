@@ -66,6 +66,12 @@ ZEND_TSRMLS_CACHE_EXTERN();
 #define PHP_BENCODE_END_STRUCTURE	'e'
 
 PHP_CG_BCODE_API void php_bencode_encode(smart_str *buf, zval *val);
+PHP_CG_BCODE_API void php_bencode_decode(zval *return_value, char *str, size_t *pos, size_t *str_len);
+static void php_bencode_decode_str(zval *return_value, char *str, size_t *pos, size_t *str_len);
+static void php_bencode_decode_int(zval *return_value, char *str, size_t *pos, size_t *str_len);
+static void php_bencode_decode_list(zval *return_value, char *str, size_t *pos, size_t *str_len);
+static void php_bencode_decode_dict(zval *return_value, char *str, size_t *pos, size_t *str_len);
+
 #endif	/* PHP_CG_BCODE_H */
 
 
