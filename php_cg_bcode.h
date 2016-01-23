@@ -24,7 +24,7 @@
 extern zend_module_entry cg_bcode_module_entry;
 #define phpext_cg_bcode_ptr &cg_bcode_module_entry
 
-#define PHP_CG_BCODE_VERSION "0.1.1" /* Replace with version number for your extension */
+#define PHP_CG_BCODE_VERSION "1.0.0" /* Replace with version number for your extension */
 
 #include "zend_smart_str_public.h"
 
