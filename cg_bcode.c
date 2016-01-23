@@ -78,6 +78,7 @@ PHP_FUNCTION(bencode)
 	if (buf.s) {
 		RETURN_STR(buf.s);
 	} else {
+		smart_str_free(&buf);
 		RETURN_EMPTY_STRING();
 	}
 }
@@ -182,13 +183,13 @@ PHP_CG_BCODE_API void php_bencode_decode(zval *return_value, char *str, size_t *
 {
 	if (*str_len > 0 && *pos < *str_len) {
 		switch (str[*pos]) {
-			case 'l':
+			case PHP_BENCODE_TYPE_LIST:
 				php_bencode_decode_list(return_value, str, pos, str_len);
 				break;
-			case 'd':
+			case PHP_BENCODE_TYPE_DICTIONARY:
 				php_bencode_decode_dict(return_value, str, pos, str_len);
 				break;
-			case 'i':
+			case PHP_BENCODE_TYPE_INTEGER:
 				php_bencode_decode_int(return_value, str, pos, str_len);
 				break;
 			default:
