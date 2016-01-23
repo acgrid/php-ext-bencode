@@ -1,5 +1,5 @@
 --TEST--
-Check for string decode
+Check for non-string key in a dict
 --SKIPIF--
 <?php if (!extension_loaded("cg_bcode")) print "skip"; ?>
 --FILE--
