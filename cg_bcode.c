@@ -106,7 +106,8 @@ static void php_bencode_decode_str(zval *return_value, char *str, size_t *pos, s
 	smart_str_free(&buf);
 	
 	if (len > 0 && *pos + len - 1 < *str_len) {
-		for (size_t i = 0; i < len; i++, (*pos)++) {
+		size_t i;
+		for (i = 0; i < len; i++, (*pos)++) {
 			smart_str_appendc(&buf, str[*pos]);
 		}
 		smart_str_0(&buf);
