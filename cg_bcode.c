@@ -266,7 +266,7 @@ static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
 		ht = Z_OBJPROP_P(val);
 		mode = PHP_BENCODE_TYPE_DICTIONARY;
 	}
-	if (ht && ZEND_HASH_GET_APPLY_COUNT(ht) > 1) {
+	if (GC_FLAGS(ht) & GC_PROTECTED) {
 		zend_error(E_WARNING, "recursion detected");
 		return;
 	}
@@ -299,7 +299,6 @@ static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
 		zend_string *key;
 		zval *data;
 		zend_ulong index;
-		HashTable *tmp_ht;
 		HashTable sorted_ht;
 		
 		if (mode == PHP_BENCODE_TYPE_DICTIONARY) {
@@ -311,17 +310,10 @@ static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
 		
 		ZEND_HASH_FOREACH_KEY_VAL_IND(ht, index, key, data) {
 			ZVAL_DEREF(data);
-			tmp_ht = HASH_OF(data);
-			if (tmp_ht && ZEND_HASH_APPLY_PROTECTION(tmp_ht)) {
-				ZEND_HASH_INC_APPLY_COUNT(tmp_ht);
-			}
 			
 			if (mode == PHP_BENCODE_TYPE_DICTIONARY) {
 				if (key) {
 					if (ZSTR_VAL(key)[0] == '\0' && Z_TYPE_P(val) == IS_OBJECT) {
-						if (tmp_ht && ZEND_HASH_APPLY_PROTECTION(tmp_ht)) {
-							ZEND_HASH_DEC_APPLY_COUNT(tmp_ht);
-						}
 						continue;
 					}
 					smart_str_append_long(buf, ZSTR_LEN(key));
@@ -337,9 +329,6 @@ static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
 			}
 			php_bencode_encode(buf, data);
 			
-			if (tmp_ht && ZEND_HASH_APPLY_PROTECTION(tmp_ht)) {
-				ZEND_HASH_DEC_APPLY_COUNT(tmp_ht);
-			}
 		} ZEND_HASH_FOREACH_END();
 		
 		if (mode == PHP_BENCODE_TYPE_DICTIONARY) {
