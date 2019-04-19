@@ -266,7 +266,11 @@ static void php_bencode_encode_array(smart_str *buf, zval *val) /* {{{ */
 		ht = Z_OBJPROP_P(val);
 		mode = PHP_BENCODE_TYPE_DICTIONARY;
 	}
+#if PHP_VERSION_ID < 70300
+	if (ht && ZEND_HASH_GET_APPLY_COUNT(ht) > 1) {
+#else
 	if (GC_FLAGS(ht) & GC_PROTECTED) {
+#endif
 		zend_error(E_WARNING, "recursion detected");
 		return;
 	}
