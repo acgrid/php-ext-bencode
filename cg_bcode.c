@@ -36,7 +36,7 @@ ZEND_DECLARE_MODULE_GLOBALS(cg_bcode)
 */
 
 /* True global resources - no need for thread safety here */
-static int le_cg_bcode;
+// static int le_cg_bcode;
 
 /* Remove the following function when you have successfully modified config.m4
    so that your module can be compiled into PHP, it exists only for testing
