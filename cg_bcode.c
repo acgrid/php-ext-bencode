@@ -27,6 +27,10 @@
 #include "zend_smart_str.h"
 #include "php_cg_bcode.h"
 
+#ifndef TSRMLS_CC
+#define TSRMLS_CC // Do nothing since it has been removed since PHP 8
+#endif
+
 /* If you declare any globals in php_cg_bcode.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(cg_bcode)
 */
