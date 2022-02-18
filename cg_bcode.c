@@ -99,7 +99,7 @@ static void php_bencode_decode_str(zval *return_value, char *str, size_t *pos, s
 	}
 	
 	if (str[*pos] != ':') {
-		zend_error(E_WARNING, "Invaild bencoded-string, expected semicolon, stop at position %u.", *pos);
+		zend_error(E_WARNING, "Invalid bencoded-string, expected semicolon, stop at position %u.", *pos);
 		RETURN_NULL();
 	}
 	
@@ -138,7 +138,7 @@ static void php_bencode_decode_int(zval *return_value, char *str, size_t *pos, s
 	
 	if (str[*pos] != PHP_BENCODE_END_STRUCTURE) {
 		smart_str_free(&buf);
-		zend_error(E_WARNING, "Invaild bencoded-integer, expected 'e'.");
+		zend_error(E_WARNING, "Invalid bencoded-integer, expected 'e'.");
 		RETURN_NULL();
 	}
 	
