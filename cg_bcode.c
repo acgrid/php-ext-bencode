@@ -26,6 +26,7 @@
 #include "ext/standard/info.h"
 #include "zend_smart_str.h"
 #include "php_cg_bcode.h"
+#include "cg_bcode_arginfo.h"
 
 #ifndef TSRMLS_CC
 #define TSRMLS_CC // Do nothing since it has been removed since PHP 8
@@ -418,23 +419,13 @@ PHP_MINFO_FUNCTION(cg_bcode)
 }
 /* }}} */
 
-/* {{{ cg_bcode_functions[]
- *
- * Every user visible function must have an entry in cg_bcode_functions[].
- */
-const zend_function_entry cg_bcode_functions[] = {
-	PHP_FE(bencode,	NULL)
-	PHP_FE(bdecode,	NULL)
-	PHP_FE_END	/* Must be the last line in cg_bcode_functions[] */
-};
-/* }}} */
 
 /* {{{ cg_bcode_module_entry
  */
 zend_module_entry cg_bcode_module_entry = {
 	STANDARD_MODULE_HEADER,
 	"cg_bcode",
-	cg_bcode_functions,
+	ext_functions,
 	PHP_MINIT(cg_bcode),
 	PHP_MSHUTDOWN(cg_bcode),
 	NULL,		/* Replace with NULL if there's nothing to do at request start */
