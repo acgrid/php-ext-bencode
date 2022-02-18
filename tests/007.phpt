@@ -5,12 +5,8 @@ Check for non bencode string
 --FILE--
 <?php
 
-var_dump(bdecode('xxxxxx'));
-
-echo "Done\n";
+bdecode('xxxxxx');
 ?>
 --EXPECTF--
 
-Warning: Invaild bencoded-string, expected semicolon, stop at position 6. in %s on line %d
-NULL
-Done
+Warning: Invalid bencoded-string, expected semicolon, stop at position 6. in %s on line %d
