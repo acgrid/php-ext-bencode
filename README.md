@@ -1,15 +1,15 @@
 # PHP Extension for Bencode Encoding and Decoding
-This PHP7 extension is a pure C implementation for bencode R/W operations.
+This PHP extension is a pure C implementation for mapping PHP variable to Bencode string vice versa.
 
 It is inspired from [this](https://github.com/acgrid/php-bencode-extension) by unknown original author.
 
-The orginal extension name and function names are kept at this moment.
+The original extension name and function names are kept at this moment.
 
 ## Installation
 
 ### Requirement
 
-*SUPPORT PHP7 ONLY*, no external libraries are needed.
+*SUPPORT PHP7,8 ONLY*, no external libraries are needed.
 
 ### *NIX
 ```bash
