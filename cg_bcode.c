@@ -231,10 +231,18 @@ static inline int php_bencode_is_valid_double(double d) /* {{{ */
 /* }}} */
 
 // Copied from ext/standard/array.c
-static int php_bencode_key_compare_string(const void *a, const void *b) /* {{{ */
+static int php_bencode_key_compare_string(
+#if PHP_VERSION_ID < 80000
+	const void *a, const void *b
+#else
+	Bucket *f, Bucket *s
+#endif
+) /* {{{ */
 {
+#if PHP_VERSION_ID < 80000
 	Bucket *f = (Bucket *) a;
 	Bucket *s = (Bucket *) b;
+#endif
 	char *s1, *s2;
 	size_t l1, l2;
 	char buf1[MAX_LENGTH_OF_LONG + 1];
