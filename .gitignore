@@ -1,4 +1,5 @@
 .deps
+*.dep
 *.lo
 *.la
 .libs
@@ -15,6 +16,7 @@ config.status
 config.sub
 configure
 configure.in
+configure.ac
 include
 install-sh
 libtool
@@ -33,6 +35,13 @@ tests/*/*.php
 tests/*/*.exp
 tests/*/*.log
 tests/*/*.sh
+tests/*.diff
+tests/*.out
+tests/*.php
+tests/*.exp
+tests/*.log
+tests/*.sh
+tmp-php.ini
 Debug/
 Release/
 x64/
